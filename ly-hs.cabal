@@ -59,7 +59,9 @@ library
     import:           warnings
 
     -- Modules exported by the library.
-    exposed-modules:  MyLib
+    exposed-modules:
+      MyLib,
+      Ilyaletre.Ly.Database
 
     -- Modules included in this library but not exported.
     -- other-modules:
@@ -70,9 +72,11 @@ library
     -- Other library packages from which modules are imported.
     build-depends:
       base,
+      time,
       mtl,
       persistent,
-      persistent-sqlite
+      persistent-sqlite,
+      esqueleto
 
     -- Directories containing source files.
     hs-source-dirs:   src
@@ -80,7 +84,7 @@ library
     -- Base language which the package is written in.
     default-language: Haskell2010
 
-executable ly-hs
+executable ly
     -- Import common warning flags.
     import:           warnings
 
