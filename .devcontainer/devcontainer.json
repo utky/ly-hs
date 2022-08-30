@@ -1,12 +1,12 @@
 {
-  "name": "Haskell (Community)",
+  "name": "Haskell",
 
   // Update the 'dockerfile' property if you aren't using the standard 'Dockerfile' filename.
   "build": {
           "dockerfile": "Dockerfile",
           "args": {
             // Update 'VARIANT' to pick a Haskell version: 9, 8
-            "VARIANT": "9"
+            "VARIANT": "11"
           }
   },
 
