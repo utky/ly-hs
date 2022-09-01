@@ -1,8 +1,8 @@
 module Main where
 
-import qualified MyLib (someFunc)
+import Database.SQLite.Simple (withConnection)
+import Ilyaletre.Ly.Database (initializeDB)
 
 main :: IO ()
 main = do
-  putStrLn "Hello, Haskell!"
-  MyLib.someFunc
+  withConnection ":memory:" initializeDB

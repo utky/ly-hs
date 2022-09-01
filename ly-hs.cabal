@@ -60,8 +60,9 @@ library
 
     -- Modules exported by the library.
     exposed-modules:
-      MyLib,
+      Ilyaletre.Ly.Core
       Ilyaletre.Ly.Database
+      Ilyaletre.Ly.Database.Ddl
 
     -- Modules included in this library but not exported.
     -- other-modules:
@@ -72,11 +73,10 @@ library
     -- Other library packages from which modules are imported.
     build-depends:
       base,
+      text,
       time,
       mtl,
-      persistent,
-      persistent-sqlite,
-      esqueleto
+      sqlite-simple
 
     -- Directories containing source files.
     hs-source-dirs:   src
@@ -100,6 +100,7 @@ executable ly
     -- Other library packages from which modules are imported.
     build-depends:
         base,
+        sqlite-simple,
         ly-hs
 
     -- Directories containing source files.
