@@ -8,11 +8,14 @@ import Database.SQLite.Simple.QQ (sql)
 ddl :: [Query]
 ddl =
   [ lane,
+    laneData,
     priority,
+    priorityData,
     task,
     todo,
     todoTask,
     timerType,
+    timerTypeData,
     timer,
     timerTask,
     estimate,
@@ -31,8 +34,18 @@ CREATE TABLE "lane"
      "id"         INTEGER PRIMARY KEY,
      "name"       VARCHAR NOT NULL,
      "created_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-     "update_at"  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+     "updated_at"  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
   );
+|]
+
+laneData :: Query
+laneData =
+  [sql|
+INSERT INTO lane(id, name) VALUES
+  (1, 'backlog'),
+  (2, 'todo'),
+  (3, 'done')
+;
 |]
 
 priority :: Query
@@ -43,8 +56,19 @@ CREATE TABLE "priority"
      "id"         INTEGER PRIMARY KEY,
      "name"       VARCHAR NOT NULL,
      "created_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-     "update_at"  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+     "updated_at"  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
   );
+|]
+
+priorityData :: Query
+priorityData =
+  [sql|
+INSERT INTO priority(id, name) VALUES
+  (0, 'n'),
+  (1, 'l'),
+  (2, 'm'),
+  (3, 'h')
+;
 |]
 
 task :: Query
@@ -58,7 +82,7 @@ CREATE TABLE "task"
      "lane_id"     INTEGER NOT NULL REFERENCES "lane" ON DELETE RESTRICT ON UPDATE RESTRICT,
      "priority_id" INTEGER NOT NULL REFERENCES "priority" ON DELETE RESTRICT ON UPDATE RESTRICT,
      "created_at"  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-     "update_at"   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+     "updated_at"   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
   );
 |]
 
@@ -71,7 +95,7 @@ CREATE TABLE "todo"
      "date"       DATE NOT NULL,
      "note"       VARCHAR NULL,
      "created_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-     "update_at"  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+     "updated_at"  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
      CONSTRAINT "unique_date" UNIQUE ("date")
   );
 |]
@@ -86,7 +110,7 @@ CREATE TABLE "todo_task"
      "todo_id"    INTEGER NOT NULL REFERENCES "todo" ON DELETE RESTRICT ON UPDATE RESTRICT,
      "task_id"    INTEGER NOT NULL REFERENCES "task" ON DELETE RESTRICT ON UPDATE RESTRICT,
      "created_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-     "update_at"  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+     "updated_at"  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
   );
 |]
 
@@ -98,8 +122,18 @@ CREATE TABLE "timer_type"
      "id"         INTEGER PRIMARY KEY,
      "name"       VARCHAR NOT NULL,
      "created_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-     "update_at"  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+     "updated_at"  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
   );
+|]
+
+timerTypeData :: Query
+timerTypeData =
+  [sql|
+INSERT INTO timer_type(id, name) VALUES
+  (0, 'pomodoro'),
+  (1, 'short break'),
+  (2, 'long break')
+;
 |]
 
 timer :: Query
@@ -124,7 +158,7 @@ CREATE TABLE "timer_task"
      "timer_id"   INTEGER NOT NULL REFERENCES "timer" ON DELETE RESTRICT ON UPDATE RESTRICT,
      "task_id"    INTEGER NOT NULL REFERENCES "task" ON DELETE RESTRICT ON UPDATE RESTRICT,
      "created_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-     "update_at"  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+     "updated_at"  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
      CONSTRAINT "unique_timer_task" UNIQUE ("timer_id", "task_id")
   );
 |]
@@ -138,7 +172,7 @@ CREATE TABLE "estimate"
      "value"      INTEGER NOT NULL,
      "task_id"    INTEGER NOT NULL REFERENCES "task" ON DELETE RESTRICT ON UPDATE RESTRICT,
      "created_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-     "update_at"  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+     "updated_at"  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
   );
 |]
 
@@ -150,7 +184,7 @@ CREATE TABLE "pomodoro"
      "id"         INTEGER PRIMARY KEY,
      "task_id"    INTEGER NOT NULL REFERENCES "task" ON DELETE RESTRICT ON UPDATE RESTRICT,
      "created_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-     "update_at"  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+     "updated_at"  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
   );
 |]
 
@@ -161,7 +195,7 @@ CREATE TABLE "break"
   (
      "id"         INTEGER PRIMARY KEY,
      "created_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-     "update_at"  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+     "updated_at"  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
   );
 |]
 
@@ -174,7 +208,7 @@ CREATE TABLE "interruption"
      "external"   BOOLEAN NOT NULL,
      "task_id"    INTEGER NOT NULL REFERENCES "task" ON DELETE RESTRICT ON UPDATE RESTRICT,
      "created_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-     "update_at"  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+     "updated_at"  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
   );
 |]
 
@@ -186,7 +220,7 @@ CREATE TABLE "tag"
      "id"         INTEGER PRIMARY KEY,
      "name"       VARCHAR NOT NULL,
      "created_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-     "update_at"  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+     "updated_at"  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
   );
 |]
 
@@ -199,7 +233,7 @@ CREATE TABLE "tagged_task"
      "tag_id"     INTEGER NOT NULL REFERENCES "tag" ON DELETE RESTRICT ON UPDATE RESTRICT,
      "task_id"    INTEGER NOT NULL REFERENCES "task" ON DELETE RESTRICT ON UPDATE RESTRICT,
      "created_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-     "update_at"  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+     "updated_at"  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
      CONSTRAINT "unique_tagged_task" UNIQUE ("tag_id", "task_id")
   ); 
 |]

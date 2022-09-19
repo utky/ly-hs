@@ -76,6 +76,8 @@ library
       text,
       time,
       mtl,
+      microlens,
+      microlens-th,
       sqlite-simple
 
     -- Directories containing source files.
@@ -137,7 +139,8 @@ test-suite ly-hs-test
         ly-hs,
         tasty,
         tasty-hunit,
-        sqlite-simple
+        sqlite-simple,
+        microlens
 
     other-modules:
       Test.Ilyaletre.Ly.Database

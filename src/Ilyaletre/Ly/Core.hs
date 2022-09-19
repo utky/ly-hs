@@ -1,12 +1,21 @@
-{-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeSynonymInstances #-}
 
 module Ilyaletre.Ly.Core
   ( Id,
-    Lane (..),
-    Priority (..),
-    Task (..),
-    TaskView (..),
-    SaveTaskRequest (..),
+    Lane (Lane),
+    HasLane (..),
+    Priority (Priority),
+    HasPriority (..),
+    Task (Task),
+    HasTask (..),
+    TaskView (TaskView),
+    HasTaskView (..),
+    AddTaskRequest (AddTaskRequest),
+    HasAddTaskRequest (..),
+    UpdateTaskRequest (UpdateTaskRequest),
+    HasUpdateTaskRequest (..),
     TaskStore (..),
   )
 where
@@ -16,93 +25,188 @@ import qualified Data.Text as T
 import Data.Time (UTCTime)
 import Database.SQLite.Simple.FromRow (FromRow (..), field)
 import Database.SQLite.Simple.ToRow (ToRow (..))
+import Lens.Micro.TH (makeClassy)
+
+-- Type
 
 type Id = Int64
 
+-- Lane
+
 data Lane = Lane
-  { id :: Id,
-    name :: T.Text,
-    createdAt :: UTCTime,
-    updatedAt :: UTCTime
+  { _laneId :: Id,
+    _laneName :: T.Text,
+    _laneCreatedAt :: UTCTime,
+    _laneUpdatedAt :: UTCTime
   }
+  deriving (Eq, Show)
+
+makeClassy ''Lane
 
 instance FromRow Lane where
-  fromRow = Lane <$> field <*> field <*> field <*> field
+  fromRow =
+    Lane
+      <$> field
+      <*> field
+      <*> field
+      <*> field
+
+-- Priority
 
 data Priority = Priority
-  { id :: Id,
-    name :: T.Text,
-    createdAt :: UTCTime,
-    updatedAt :: UTCTime
+  { _priorityId :: Id,
+    _priorityName :: T.Text,
+    _priorityCreatedAt :: UTCTime,
+    _priorityUpdatedAt :: UTCTime
   }
+  deriving (Eq, Show)
+
+makeClassy ''Priority
 
 instance FromRow Priority where
-  fromRow = Priority <$> field <*> field <*> field <*> field
+  fromRow =
+    Priority
+      <$> field
+      <*> field
+      <*> field
+      <*> field
+
+-- Task
 
 data Task = Task
-  { id :: Id,
-    summary :: T.Text,
-    estimate :: Int64,
-    laneId :: Id,
-    priorityId :: Id,
-    createdAt :: UTCTime,
-    updatedAt :: UTCTime
+  { _taskId :: Id,
+    _taskSummary :: T.Text,
+    _taskEstimate :: Int64,
+    _taskLaneId :: Id,
+    _taskPriorityId :: Id,
+    _taskCreatedAt :: UTCTime,
+    _taskUpdatedAt :: UTCTime
   }
+  deriving (Eq, Show)
+
+makeClassy ''Task
 
 instance FromRow Task where
-  fromRow = Task <$> field <*> field <*> field <*> field <*> field <*> field <*> field
+  fromRow =
+    Task
+      <$> field -- id
+      <*> field -- summary
+      <*> field -- estimate
+      <*> field -- laneId
+      <*> field -- priorityId
+      <*> field -- createdAt
+      <*> field -- updatedAt
 
 -- | Taskの表示用データ構造
 data TaskView = TaskView
-  { id :: Id,
-    summary :: T.Text,
-    estimate :: Int64,
-    laneId :: Id,
-    lane :: T.Text,
-    priorityId :: Id,
-    priority :: T.Text,
-    createdAt :: UTCTime,
-    updatedAt :: UTCTime
+  { _taskViewId :: Id,
+    _taskViewSummary :: T.Text,
+    _taskViewEstimate :: Int64,
+    _taskViewLaneId :: Id,
+    _taskViewLane :: T.Text,
+    _taskViewPriorityId :: Id,
+    _taskViewPriority :: T.Text,
+    _taskViewCreatedAt :: UTCTime,
+    _taskViewUpdatedAt :: UTCTime
   }
+  deriving (Eq, Show)
+
+makeClassy ''TaskView
 
 instance FromRow TaskView where
-  fromRow = TaskView <$> field <*> field <*> field <*> field <*> field <*> field <*> field <*> field <*> field
+  fromRow =
+    TaskView
+      <$> field
+      <*> field
+      <*> field
+      <*> field
+      <*> field
+      <*> field
+      <*> field
+      <*> field
+      <*> field
 
-data SaveTaskRequest = SaveTaskRequest
-  { -- | Id can be absent on first creation
-    id :: Maybe Id,
-    summary :: T.Text,
-    estimate :: Int64,
-    laneId :: Id,
-    priorityId :: Id
+data AddTaskRequest = AddTaskRequest
+  { _addTaskRequestSummary :: T.Text,
+    _addTaskRequestEstimate :: Int64,
+    _addTaskRequestLaneId :: Id,
+    _addTaskRequestPriorityId :: Id
   }
 
-instance ToRow SaveTaskRequest where
-  toRow (SaveTaskRequest (Just id') c1 c2 c3 c4) = toRow (id', c1, c2, c3, c4)
-  toRow (SaveTaskRequest Nothing c1 c2 c3 c4) = toRow (c1, c2, c3, c4)
+makeClassy ''AddTaskRequest
+
+instance ToRow AddTaskRequest where
+  toRow (AddTaskRequest c1 c2 c3 c4) =
+    toRow
+      ( c1,
+        c2,
+        c3,
+        c4
+      )
+
+data UpdateTaskRequest = UpdateTaskRequest
+  { _updateTaskRequestId :: Id,
+    _updateTaskRequestSummary :: Maybe T.Text,
+    _updateTaskRequestEstimate :: Maybe Int64,
+    _updateTaskRequestLaneId :: Maybe Id,
+    _updateTaskRequestPriorityId :: Maybe Id
+  }
+
+makeClassy ''UpdateTaskRequest
+
+instance ToRow UpdateTaskRequest where
+  toRow (UpdateTaskRequest id' c1 c2 c3 c4) =
+    toRow
+      ( id',
+        c1,
+        c2,
+        c3,
+        c4
+      )
 
 class TaskStore m where
   getTask :: Id -> m TaskView
-  saveTask :: SaveTaskRequest -> m TaskView
+  addTask :: AddTaskRequest -> m TaskView
+  updateTask :: UpdateTaskRequest -> m TaskView
+
+-- Todo
 
 data Todo = Todo
-  { id :: Id,
-    date :: UTCTime,
-    note :: T.Text,
-    createdAt :: UTCTime,
-    updatedAt :: UTCTime
+  { _todoId :: Id,
+    _todoDate :: UTCTime,
+    _todoNote :: T.Text,
+    _todoCreatedAt :: UTCTime,
+    _todoUpdatedAt :: UTCTime
   }
+
+makeClassy ''Todo
 
 instance FromRow Todo where
-  fromRow = Todo <$> field <*> field <*> field <*> field <*> field
+  fromRow =
+    Todo
+      <$> field
+      <*> field
+      <*> field
+      <*> field
+      <*> field
+
+-- Timer
 
 data Timer = Timer
-  { id :: Id,
-    label :: T.Text,
-    timerTypeId :: Id,
-    startedAt :: UTCTime,
-    duration :: Int64
+  { _timerId :: Id,
+    _timerLabel :: T.Text,
+    _timerTimerTypeId :: Id,
+    _timerStartedAt :: UTCTime,
+    _timerDuration :: Int64
   }
 
+makeClassy ''Timer
+
 instance FromRow Timer where
-  fromRow = Timer <$> field <*> field <*> field <*> field <*> field
+  fromRow =
+    Timer
+      <$> field
+      <*> field
+      <*> field
+      <*> field
+      <*> field
