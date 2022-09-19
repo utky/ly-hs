@@ -6,8 +6,8 @@ module Ilyaletre.Ly.Core
     Priority (..),
     Task (..),
     TaskView (..),
-    TaskRequest (..),
-    MonadTask (..),
+    SaveTaskRequest (..),
+    TaskStore (..),
   )
 where
 
@@ -68,28 +68,22 @@ data TaskView = TaskView
 instance FromRow TaskView where
   fromRow = TaskView <$> field <*> field <*> field <*> field <*> field <*> field <*> field <*> field <*> field
 
-data TaskRequest
-  = TaskAdd
-      { summary :: T.Text,
-        estimate :: Int64,
-        laneId :: Id,
-        priorityId :: Id
-      }
-  | TaskUpdate
-      { id :: Id,
-        summary :: T.Text,
-        estimate :: Int64,
-        laneId :: Id,
-        priorityId :: Id
-      }
+data SaveTaskRequest = SaveTaskRequest
+  { -- | Id can be absent on first creation
+    id :: Maybe Id,
+    summary :: T.Text,
+    estimate :: Int64,
+    laneId :: Id,
+    priorityId :: Id
+  }
 
-instance ToRow TaskRequest where
-  toRow (TaskAdd c0 c1 c2 c3) = toRow (c0, c1, c2, c3)
-  toRow (TaskUpdate c0 c1 c2 c3 c4) = toRow (c0, c1, c2, c3, c4)
+instance ToRow SaveTaskRequest where
+  toRow (SaveTaskRequest (Just id') c1 c2 c3 c4) = toRow (id', c1, c2, c3, c4)
+  toRow (SaveTaskRequest Nothing c1 c2 c3 c4) = toRow (c1, c2, c3, c4)
 
-class (Monad m) => MonadTask m where
+class TaskStore m where
   getTask :: Id -> m TaskView
-  saveTask :: TaskRequest -> m TaskView
+  saveTask :: SaveTaskRequest -> m TaskView
 
 data Todo = Todo
   { id :: Id,

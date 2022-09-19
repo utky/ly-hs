@@ -134,4 +134,10 @@ test-suite ly-hs-test
     -- Test dependencies.
     build-depends:
         base,
-        ly-hs
+        ly-hs,
+        tasty,
+        tasty-hunit,
+        sqlite-simple
+
+    other-modules:
+      Test.Ilyaletre.Ly.Database
