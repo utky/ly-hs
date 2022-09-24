@@ -48,7 +48,7 @@ instance (MonadIO m) => TaskStore (Database m) where
               task.updated_at AS updated_at
             FROM task
             JOIN lane ON task.lane_id = lane.id
-            JOIN priority ON task.priority_id = priority
+            JOIN priority ON task.priority_id = priority.id
             WHERE task.id = ?
           |]
           (Only i)
