@@ -19,7 +19,8 @@ tests =
     "Database"
     [ testCase "initialize" testInitialize,
       testCase "add task" testAddTask,
-      testCase "add task multiple" testAddTaskMultiple
+      testCase "add task multiple" testAddTaskMultiple,
+      testCase "update task" testUpdateTask
     ]
 
 testInitialize :: Assertion
@@ -73,3 +74,28 @@ testAddTaskMultiple = do
   estimate2 @?= 2
   lane2 @?= "done"
   priority2 @?= "l"
+
+testUpdateTask :: Assertion
+testUpdateTask = do
+  TaskView {summary, estimate, lane, priority} <- withTestDB $ \c -> do
+    flip runDatabase c $ do
+      (TaskView {id'}) <-
+        addTask
+          ( AddTaskRequest
+              "test"
+              1 -- estimate
+              2 -- lane_id
+              3 -- priority_id
+          )
+      updateTask
+        ( UpdateTaskRequest
+            id'
+            (Just "test2")
+            (Just 2) -- estimate
+            (Just 3) -- lane_id
+            (Just 1) -- priority_id
+        )
+  summary @?= "test2"
+  estimate @?= 2
+  lane @?= "done"
+  priority @?= "l"

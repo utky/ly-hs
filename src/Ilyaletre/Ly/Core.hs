@@ -151,11 +151,11 @@ instance FromJSON UpdateTaskRequest
 instance ToRow UpdateTaskRequest where
   toRow (UpdateTaskRequest id' c1 c2 c3 c4) =
     toRow
-      ( id',
-        c1,
+      ( c1,
         c2,
         c3,
-        c4
+        c4,
+        id' -- WHERE 句に渡す
       )
 
 data SearchTaskRequest = SearchTaskRequest {}
