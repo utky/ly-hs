@@ -6,7 +6,8 @@
           "dockerfile": "Dockerfile",
           "args": {
             // Update 'VARIANT' to pick a Haskell version: 9, 8
-            "VARIANT": "11"
+            "VARIANT": "11",
+            "GHC_VERSION": "9.2.4"
           }
   },
 

@@ -1,3 +1,5 @@
+{-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Test.Ilyaletre.Ly.Database (tests) where
@@ -5,7 +7,6 @@ module Test.Ilyaletre.Ly.Database (tests) where
 import Database.SQLite.Simple (Connection, withConnection)
 import Ilyaletre.Ly.Core
 import Ilyaletre.Ly.Database (initializeDB, runDatabase)
-import Lens.Micro
 import Test.Tasty
 import Test.Tasty.HUnit
 
@@ -28,7 +29,7 @@ testInitialize = do
 
 testAddTask :: Assertion
 testAddTask = do
-  v <- withTestDB $ \c -> do
+  TaskView {summary, estimate, lane, priority} <- withTestDB $ \c -> do
     flip runDatabase c $
       addTask
         ( AddTaskRequest
@@ -37,14 +38,14 @@ testAddTask = do
             2 -- lane_id
             3 -- priority_id
         )
-  (v ^. taskViewSummary) @?= "test"
-  (v ^. taskViewEstimate) @?= 1
-  (v ^. taskViewLane) @?= "todo"
-  (v ^. taskViewPriority) @?= "h"
+  summary @?= "test"
+  estimate @?= 1
+  lane @?= "todo"
+  priority @?= "h"
 
 testAddTaskMultiple :: Assertion
 testAddTaskMultiple = do
-  (v1, v2) <- withTestDB $ \c -> do
+  (TaskView {summary = summary1, estimate = estimate1, lane = lane1, priority = priority1}, TaskView {summary = summary2, estimate = estimate2, lane = lane2, priority = priority2}) <- withTestDB $ \c -> do
     flip runDatabase c $ do
       t1 <-
         addTask
@@ -63,12 +64,12 @@ testAddTaskMultiple = do
               1 -- priority_id
           )
       return (t1, t2)
-  (v1 ^. taskViewSummary) @?= "test1"
-  (v1 ^. taskViewEstimate) @?= 1
-  (v1 ^. taskViewLane) @?= "todo"
-  (v1 ^. taskViewPriority) @?= "h"
+  summary1 @?= "test1"
+  estimate1 @?= 1
+  lane1 @?= "todo"
+  priority1 @?= "h"
 
-  (v2 ^. taskViewSummary) @?= "test2"
-  (v2 ^. taskViewEstimate) @?= 2
-  (v2 ^. taskViewLane) @?= "done"
-  (v2 ^. taskViewPriority) @?= "l"
+  summary2 @?= "test2"
+  estimate2 @?= 2
+  lane2 @?= "done"
+  priority2 @?= "l"

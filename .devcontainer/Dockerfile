@@ -1,4 +1,5 @@
 ARG VARIANT="bullseye"
+ARG GHC_VERSION="9.2.4"
 FROM debian:${VARIANT}
 
 # [Option] Install zsh
@@ -27,6 +28,7 @@ RUN echo "export PATH=$PATH" >> /home/$USERNAME/.profile
 
 ENV BOOTSTRAP_HASKELL_NONINTERACTIVE=yes \
     BOOTSTRAP_HASKELL_NO_UPGRADE=yes \
-    BOOTSTRAP_HASKELL_INSTALL_HLS=yes
+    BOOTSTRAP_HASKELL_INSTALL_HLS=yes \
+    BOOTSTRAP_HASKELL_GHC_VERSION=${GHC_VERSION}
 
 RUN curl --proto '=https' --tlsv1.2 -sSf https://get-ghcup.haskell.org | sh

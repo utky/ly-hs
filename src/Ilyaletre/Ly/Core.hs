@@ -1,31 +1,28 @@
-{-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE NoFieldSelectors #-}
 
 module Ilyaletre.Ly.Core
   ( Id,
-    Lane (Lane),
-    HasLane (..),
-    Priority (Priority),
-    HasPriority (..),
-    Task (Task),
-    HasTask (..),
-    TaskView (TaskView),
-    HasTaskView (..),
-    AddTaskRequest (AddTaskRequest),
-    HasAddTaskRequest (..),
-    UpdateTaskRequest (UpdateTaskRequest),
-    HasUpdateTaskRequest (..),
+    Lane (..),
+    Priority (..),
+    Task (..),
+    TaskView (..),
+    AddTaskRequest (..),
+    UpdateTaskRequest (..),
     TaskStore (..),
+    TaskSearch (..),
   )
 where
 
+import Data.Aeson
 import Data.Int (Int64)
 import qualified Data.Text as T
 import Data.Time (UTCTime)
 import Database.SQLite.Simple.FromRow (FromRow (..), field)
 import Database.SQLite.Simple.ToRow (ToRow (..))
-import Lens.Micro.TH (makeClassy)
+import GHC.Generics
 
 -- Type
 
@@ -34,14 +31,12 @@ type Id = Int64
 -- Lane
 
 data Lane = Lane
-  { _laneId :: Id,
-    _laneName :: T.Text,
-    _laneCreatedAt :: UTCTime,
-    _laneUpdatedAt :: UTCTime
+  { id' :: Id,
+    name :: T.Text,
+    createdAt :: UTCTime,
+    updatedAt :: UTCTime
   }
   deriving (Eq, Show)
-
-makeClassy ''Lane
 
 instance FromRow Lane where
   fromRow =
@@ -54,14 +49,12 @@ instance FromRow Lane where
 -- Priority
 
 data Priority = Priority
-  { _priorityId :: Id,
-    _priorityName :: T.Text,
-    _priorityCreatedAt :: UTCTime,
-    _priorityUpdatedAt :: UTCTime
+  { id' :: Id,
+    name :: T.Text,
+    createdAt :: UTCTime,
+    updatedAt :: UTCTime
   }
   deriving (Eq, Show)
-
-makeClassy ''Priority
 
 instance FromRow Priority where
   fromRow =
@@ -74,17 +67,15 @@ instance FromRow Priority where
 -- Task
 
 data Task = Task
-  { _taskId :: Id,
-    _taskSummary :: T.Text,
-    _taskEstimate :: Int64,
-    _taskLaneId :: Id,
-    _taskPriorityId :: Id,
-    _taskCreatedAt :: UTCTime,
-    _taskUpdatedAt :: UTCTime
+  { id' :: Id,
+    summary :: T.Text,
+    estimate :: Int64,
+    laneId :: Id,
+    priorityId :: Id,
+    createdAt :: UTCTime,
+    updatedAt :: UTCTime
   }
   deriving (Eq, Show)
-
-makeClassy ''Task
 
 instance FromRow Task where
   fromRow =
@@ -99,19 +90,20 @@ instance FromRow Task where
 
 -- | Taskの表示用データ構造
 data TaskView = TaskView
-  { _taskViewId :: Id,
-    _taskViewSummary :: T.Text,
-    _taskViewEstimate :: Int64,
-    _taskViewLaneId :: Id,
-    _taskViewLane :: T.Text,
-    _taskViewPriorityId :: Id,
-    _taskViewPriority :: T.Text,
-    _taskViewCreatedAt :: UTCTime,
-    _taskViewUpdatedAt :: UTCTime
+  { id' :: Id,
+    summary :: T.Text,
+    estimate :: Int64,
+    laneId :: Id,
+    lane :: T.Text,
+    priorityId :: Id,
+    priority :: T.Text,
+    createdAt :: UTCTime,
+    updatedAt :: UTCTime
   }
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic)
 
-makeClassy ''TaskView
+instance ToJSON TaskView where
+  toEncoding = genericToEncoding defaultOptions
 
 instance FromRow TaskView where
   fromRow =
@@ -127,13 +119,14 @@ instance FromRow TaskView where
       <*> field
 
 data AddTaskRequest = AddTaskRequest
-  { _addTaskRequestSummary :: T.Text,
-    _addTaskRequestEstimate :: Int64,
-    _addTaskRequestLaneId :: Id,
-    _addTaskRequestPriorityId :: Id
+  { summary :: T.Text,
+    estimate :: Int64,
+    laneId :: Id,
+    priorityId :: Id
   }
+  deriving (Eq, Show, Generic)
 
-makeClassy ''AddTaskRequest
+instance FromJSON AddTaskRequest
 
 instance ToRow AddTaskRequest where
   toRow (AddTaskRequest c1 c2 c3 c4) =
@@ -145,14 +138,15 @@ instance ToRow AddTaskRequest where
       )
 
 data UpdateTaskRequest = UpdateTaskRequest
-  { _updateTaskRequestId :: Id,
-    _updateTaskRequestSummary :: Maybe T.Text,
-    _updateTaskRequestEstimate :: Maybe Int64,
-    _updateTaskRequestLaneId :: Maybe Id,
-    _updateTaskRequestPriorityId :: Maybe Id
+  { id' :: Id,
+    summary :: Maybe T.Text,
+    estimate :: Maybe Int64,
+    laneId :: Maybe Id,
+    priorityId :: Maybe Id
   }
+  deriving (Eq, Show, Generic)
 
-makeClassy ''UpdateTaskRequest
+instance FromJSON UpdateTaskRequest
 
 instance ToRow UpdateTaskRequest where
   toRow (UpdateTaskRequest id' c1 c2 c3 c4) =
@@ -164,22 +158,28 @@ instance ToRow UpdateTaskRequest where
         c4
       )
 
+data SearchTaskRequest = SearchTaskRequest {}
+  deriving (Eq, Show, Generic)
+
+instance FromJSON SearchTaskRequest
+
 class TaskStore m where
   getTask :: Id -> m TaskView
   addTask :: AddTaskRequest -> m TaskView
   updateTask :: UpdateTaskRequest -> m TaskView
 
+class TaskSearch m where
+  searchTask :: SearchTaskRequest -> m [TaskView]
+
 -- Todo
 
 data Todo = Todo
-  { _todoId :: Id,
-    _todoDate :: UTCTime,
-    _todoNote :: T.Text,
-    _todoCreatedAt :: UTCTime,
-    _todoUpdatedAt :: UTCTime
+  { id' :: Id,
+    date :: UTCTime,
+    note :: T.Text,
+    createdAt :: UTCTime,
+    updatedAt :: UTCTime
   }
-
-makeClassy ''Todo
 
 instance FromRow Todo where
   fromRow =
@@ -193,14 +193,12 @@ instance FromRow Todo where
 -- Timer
 
 data Timer = Timer
-  { _timerId :: Id,
-    _timerLabel :: T.Text,
-    _timerTimerTypeId :: Id,
-    _timerStartedAt :: UTCTime,
-    _timerDuration :: Int64
+  { id' :: Id,
+    label :: T.Text,
+    timerTypeId :: Id,
+    startedAt :: UTCTime,
+    duration :: Int64
   }
-
-makeClassy ''Timer
 
 instance FromRow Timer where
   fromRow =
@@ -210,3 +208,17 @@ instance FromRow Timer where
       <*> field
       <*> field
       <*> field
+
+data Pomodoro = Pomodoro
+  { id' :: Id,
+    taskId :: Id,
+    createdAt :: UTCTime,
+    updatedAt :: UTCTime
+  }
+
+data Break = Break
+  { id' :: Id,
+    taskId :: Id,
+    createdAt :: UTCTime,
+    updatedAt :: UTCTime
+  }

@@ -61,6 +61,8 @@ library
     -- Modules exported by the library.
     exposed-modules:
       Ilyaletre.Ly.Core
+      Ilyaletre.Ly.Api
+      Ilyaletre.Ly.Server
       Ilyaletre.Ly.Database
       Ilyaletre.Ly.Database.Ddl
 
@@ -76,9 +78,10 @@ library
       text,
       time,
       mtl,
-      microlens,
-      microlens-th,
-      sqlite-simple
+      sqlite-simple,
+      aeson,
+      servant,
+      servant-server
 
     -- Directories containing source files.
     hs-source-dirs:   src
@@ -139,8 +142,7 @@ test-suite ly-hs-test
         ly-hs,
         tasty,
         tasty-hunit,
-        sqlite-simple,
-        microlens
+        sqlite-simple
 
     other-modules:
       Test.Ilyaletre.Ly.Database
